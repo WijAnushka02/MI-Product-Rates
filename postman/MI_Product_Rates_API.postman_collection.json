@@ -1,0 +1,330 @@
+{
+  "info": {
+    "name": "MI Product Rates Management API (Oracle DB)",
+    "_postman_id": "c6218f6c-843a-4efc-8b89-a5e2f750cfa8",
+    "description": "Full Postman API collection for testing the MI Product Rates Management System built with Django REST Framework and Oracle Database.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Product Rate (With File Upload)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "pm.test(\"SR_ID auto-generated in SR00X format\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.sr_id).to.match(/^SR\\d{3,}$/);",
+              "    pm.collectionVariables.set(\"record_id\", jsonData.id);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "service",
+              "value": "Dedicated Internet Access",
+              "type": "text"
+            },
+            {
+              "key": "executive_level",
+              "value": "Enterprise Gold",
+              "type": "text"
+            },
+            {
+              "key": "rate",
+              "value": "125000.50",
+              "type": "text"
+            },
+            {
+              "key": "created_user",
+              "value": "anushka_intern",
+              "type": "text"
+            },
+            {
+              "key": "status",
+              "value": "Active",
+              "type": "text"
+            },
+            {
+              "key": "comments",
+              "value": "Annual commercial rate card Q1",
+              "type": "text"
+            },
+            {
+              "key": "attachment",
+              "type": "file",
+              "src": ""
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Create Product Rate (JSON Only, No File)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201 Created\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"service\": \"MPLS VPN Link\",\n    \"executive_level\": \"Silver Tier\",\n    \"rate\": 78500.00,\n    \"created_user\": \"admin_user\",\n    \"status\": \"Active\",\n    \"comments\": \"Fixed intra-branch rate\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. List All Product Rates",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response is an array of rate records\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Retrieve Single Rate by ID",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/{{record_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            "{{record_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "5. Partial Update Record (PATCH)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 OK\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Status changed to Inactive\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData.status).to.eql(\"Inactive\");",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"rate\": 130000.00,\n    \"status\": \"Inactive\",\n    \"updated_user\": \"supervisor_slt\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/{{record_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            "{{record_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "6. Validation Test: Invalid Decimal (> 2 places)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 400 Bad Request\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"service\": \"Test Invalid Rate\",\n    \"executive_level\": \"Silver\",\n    \"rate\": 150.999,\n    \"status\": \"Active\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "7. Delete Rate Record",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200 or 204\", function () {",
+              "    pm.expect([200, 204]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/mi-product-rates/{{record_id}}/",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "mi-product-rates",
+            "{{record_id}}",
+            ""
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "record_id",
+      "value": "1"
+    }
+  ]
+}
