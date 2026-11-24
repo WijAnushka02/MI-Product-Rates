@@ -13,6 +13,7 @@ class MiProductRateSerializer(serializers.ModelSerializer):
     Handles data validation, serialization, and file URL formatting.
     """
     attachment_url = serializers.SerializerMethodField(read_only=True)
+    download_url = serializers.SerializerMethodField(read_only=True)
     rate = serializers.DecimalField(max_digits=12, decimal_places=2, coerce_to_string=False)
 
     class Meta:
@@ -30,6 +31,7 @@ class MiProductRateSerializer(serializers.ModelSerializer):
             'status',
             'attachment',
             'attachment_url',
+            'download_url',
             'comments',
         ]
         read_only_fields = [
@@ -41,13 +43,25 @@ class MiProductRateSerializer(serializers.ModelSerializer):
 
     def get_attachment_url(self, obj):
         """
-        Build full URL for downloading/viewing the uploaded attachment.
+        Build full URL for viewing the uploaded attachment.
         """
         request = self.context.get('request')
         if obj.attachment:
             if request:
                 return request.build_absolute_uri(obj.attachment.url)
             return obj.attachment.url
+        return None
+
+    def get_download_url(self, obj):
+        """
+        Build full URL for triggering an attachment download.
+        """
+        request = self.context.get('request')
+        if obj.attachment:
+            download_path = f"/api/mi-product-rates/{obj.id}/download/"
+            if request:
+                return request.build_absolute_uri(download_path)
+            return download_path
         return None
 
     def validate_rate(self, value):

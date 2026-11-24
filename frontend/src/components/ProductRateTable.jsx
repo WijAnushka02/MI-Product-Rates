@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit2, Trash2, FileDown } from 'lucide-react';
+import { Edit2, Trash2, FileDown, ExternalLink } from 'lucide-react';
 
 export default function ProductRateTable({ rates, onEdit, onDelete, isLoading }) {
   const formatCurrency = (val) => {
@@ -21,6 +21,30 @@ export default function ProductRateTable({ rates, onEdit, onDelete, isLoading })
     });
   };
 
+  const handleDownload = async (item) => {
+    const targetUrl =
+      item.download_url || `http://localhost:8000/api/mi-product-rates/${item.id}/download/`;
+    try {
+      const response = await fetch(targetUrl);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      const rawName = item.attachment
+        ? item.attachment.split('/').pop().split('\\').pop()
+        : `${item.sr_id}_attachment`;
+      a.download = rawName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      // Fallback: navigate directly to download URL
+      window.location.href = targetUrl;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-20 text-gray-500">
@@ -34,7 +58,7 @@ export default function ProductRateTable({ rates, onEdit, onDelete, isLoading })
     return (
       <div className="text-center py-16 bg-white rounded-xl border border-gray-200 mt-4">
         <p className="text-gray-500 text-base font-medium">No MI Product Rates records found.</p>
-        <p className="text-gray-400 text-xs mt-1">Click "Add New Rate" to create your first entry.</p>
+        <p className="text-gray-400 text-xs mt-1">Try modifying your search or click "Add New Rate" to create an entry.</p>
       </div>
     );
   }
@@ -83,16 +107,29 @@ export default function ProductRateTable({ rates, onEdit, onDelete, isLoading })
                   </span>
                 </td>
                 <td className="py-3 px-4 whitespace-nowrap">
-                  {item.attachment_url ? (
-                    <a
-                      href={item.attachment_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 font-medium bg-blue-50 px-2 py-1 rounded border border-blue-200"
-                    >
-                      <FileDown size={14} />
-                      Download
-                    </a>
+                  {item.attachment ? (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleDownload(item)}
+                        title="Download attachment file"
+                        className="inline-flex items-center gap-1.5 text-xs text-blue-700 hover:text-white hover:bg-blue-600 font-medium bg-blue-50 px-2.5 py-1.5 rounded-md border border-blue-200 transition cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <FileDown size={14} />
+                        Download
+                      </button>
+                      {item.attachment_url && (
+                        <a
+                          href={item.attachment_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Open preview in new tab"
+                          className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-md transition"
+                        >
+                          <ExternalLink size={14} />
+                        </a>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-gray-400 text-xs italic">None</span>
                   )}

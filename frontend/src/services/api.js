@@ -48,6 +48,11 @@ export const updateProductRate = async (id, formData) => {
 };
 
 /**
+ * Get direct download endpoint for an attachment
+ */
+export const getDownloadUrl = (id) => `${BASE_URL}${id}/download/`;
+
+/**
  * Delete a product rate by ID
  */
 export const deleteProductRate = async (id) => {
