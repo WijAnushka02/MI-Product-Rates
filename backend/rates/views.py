@@ -26,12 +26,12 @@ class MiProductRateViewSet(viewsets.ModelViewSet):
     ordering_fields = ['id', 'sr_id', 'rate', 'created_date', 'status']
 
     def perform_create(self, serializer):
-        created_user = self.request.data.get('created_user') or 'System Admin'
-        serializer.save(created_user=created_user)
+        user_name = self.request.user.username if self.request.user.is_authenticated else (self.request.data.get('created_user') or 'anushka_intern')
+        serializer.save(created_user=user_name)
 
     def perform_update(self, serializer):
-        updated_user = self.request.data.get('updated_user') or 'System Admin'
-        serializer.save(updated_user=updated_user)
+        user_name = self.request.user.username if self.request.user.is_authenticated else (self.request.data.get('updated_user') or 'anushka_intern')
+        serializer.save(updated_user=user_name)
 
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, pk=None):

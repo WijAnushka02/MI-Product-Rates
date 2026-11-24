@@ -91,7 +91,8 @@ MI Product Rates/
 │   ├── 04_DRF_API_DEVELOPMENT.md          # Task 02: CRUD APIs & multipart file upload
 │   ├── 05_POSTMAN_API_TESTING_GUIDE.md    # Task 03: Postman test suite & endpoints
 │   ├── 06_REACT_FRONTEND_DEVELOPMENT.md   # Tasks 04 & 05: React UI, modals & auto-refresh
-│   └── 07_EXECUTION_AND_TROUBLESHOOTING_GUIDE.md # Run guide & common Oracle/Django fixes
+│   ├── 07_EXECUTION_AND_TROUBLESHOOTING_GUIDE.md # Run guide & common Oracle/Django fixes
+│   └── 08_COMPREHENSIVE_TEST_SUITE_AND_CASES.md  # IEEE 829 QA Test Specification & Matrix
 ├── postman/                               # Ready-to-import Postman Collection
 │   └── MI_Product_Rates_API.postman_collection.json
 ├── README.md                              # Main overview & quick start
@@ -161,6 +162,18 @@ npm run dev
 ```
 
 Visit the application at `http://localhost:5173/`.
+
+### 3. Running Automated Tests & Load Benchmarks
+Refer to [08_COMPREHENSIVE_TEST_SUITE_AND_CASES.md](docs/08_COMPREHENSIVE_TEST_SUITE_AND_CASES.md):
+
+```bash
+# Run 19 Automated Unit & Integration Tests against Oracle DB
+cd backend
+..\venv\Scripts\python manage.py test rates -v 2 --keepdb
+
+# Run Multi-threaded Concurrency Load Benchmark
+..\venv\Scripts\python load_test.py
+```
 
 ---
 

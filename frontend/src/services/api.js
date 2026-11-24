@@ -1,9 +1,16 @@
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:8000/api/mi-product-rates/';
+const AUTH_URL = 'http://localhost:8000/api/auth/';
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,
+});
+
+const authClient = axios.create({
+  baseURL: AUTH_URL,
+  withCredentials: true,
 });
 
 /**
@@ -57,5 +64,34 @@ export const getDownloadUrl = (id) => `${BASE_URL}${id}/download/`;
  */
 export const deleteProductRate = async (id) => {
   const response = await apiClient.delete(`${id}/`);
+  return response.data;
+};
+
+// -------------------------------------------------------------
+// AUTHENTICATION API SERVICES
+// -------------------------------------------------------------
+
+export const loginApi = async (credentials) => {
+  const response = await authClient.post('login/', credentials);
+  return response.data;
+};
+
+export const registerApi = async (userData) => {
+  const response = await authClient.post('register/', userData);
+  return response.data;
+};
+
+export const googleAuthApi = async (googleProfile) => {
+  const response = await authClient.post('google/', googleProfile);
+  return response.data;
+};
+
+export const getMeApi = async () => {
+  const response = await authClient.get('me/');
+  return response.data;
+};
+
+export const logoutApi = async () => {
+  const response = await authClient.post('logout/');
   return response.data;
 };

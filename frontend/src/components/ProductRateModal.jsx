@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { X, Upload, FileText } from 'lucide-react';
 
-export default function ProductRateModal({ isOpen, onClose, onSave, editData, isSubmitting }) {
+export default function ProductRateModal({ isOpen, onClose, onSave, editData, isSubmitting, defaultUser = 'anushka_intern' }) {
   const [formData, setFormData] = useState({
     service: '',
     executive_level: '',
     rate: '',
     status: 'Active',
-    created_user: 'anushka_intern',
+    created_user: defaultUser,
     comments: '',
   });
 
@@ -21,7 +21,7 @@ export default function ProductRateModal({ isOpen, onClose, onSave, editData, is
         executive_level: editData.executive_level || '',
         rate: editData.rate || '',
         status: editData.status || 'Active',
-        created_user: editData.created_user || 'anushka_intern',
+        created_user: editData.created_user || defaultUser,
         comments: editData.comments || '',
       });
       setAttachmentFile(null);
@@ -31,13 +31,13 @@ export default function ProductRateModal({ isOpen, onClose, onSave, editData, is
         executive_level: '',
         rate: '',
         status: 'Active',
-        created_user: 'anushka_intern',
+        created_user: defaultUser,
         comments: '',
       });
       setAttachmentFile(null);
     }
     setErrors({});
-  }, [editData, isOpen]);
+  }, [editData, isOpen, defaultUser]);
 
   if (!isOpen) return null;
 

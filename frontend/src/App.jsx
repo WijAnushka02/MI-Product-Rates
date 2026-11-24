@@ -1,21 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, RefreshCw, Layers, X, Filter } from 'lucide-react';
+import { Plus, Search, RefreshCw, Layers, X, Filter, LogIn, LogOut, UserCircle } from 'lucide-react';
 import ProductRateTable from './components/ProductRateTable';
 import ProductRateModal from './components/ProductRateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import AuthModal from './components/AuthModal';
 import Toast from './components/Toast';
 import {
   getProductRates,
   createProductRate,
   updateProductRate,
   deleteProductRate,
+  logoutApi,
 } from './services/api';
 
 export default function App() {
   const [rates, setRates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  // Search state: searchInput (typed text) vs activeSearch (submitted query)
+
+  // Authentication state
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('slt_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Search state
   const [searchInput, setSearchInput] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
@@ -36,7 +49,23 @@ export default function App() {
     setToast({ message, type });
   };
 
-  // Fetch from backend
+  const handleAuthSuccess = (userData) => {
+    setCurrentUser(userData);
+    localStorage.setItem('slt_user', JSON.stringify(userData));
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logoutApi();
+    } catch {
+      // Continue client cleanup regardless
+    }
+    setCurrentUser(null);
+    localStorage.removeItem('slt_user');
+    showToast('Signed out successfully.', 'success');
+  };
+
+  // Fetch rates
   const fetchRates = async (query = activeSearch) => {
     setIsLoading(true);
     try {
@@ -49,12 +78,10 @@ export default function App() {
     }
   };
 
-  // Initial load
   useEffect(() => {
     fetchRates('');
   }, []);
 
-  // Handle Search submit (via Search button or Enter key)
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
     const query = searchInput.trim();
@@ -62,7 +89,6 @@ export default function App() {
     fetchRates(query);
   };
 
-  // Handle Reset / Clear search
   const handleClearSearch = () => {
     setSearchInput('');
     setActiveSearch('');
@@ -72,6 +98,14 @@ export default function App() {
   // Handle Save (Add or Update)
   const handleSave = async (formData, id) => {
     setIsSubmitting(true);
+    const actorUser = currentUser?.username || 'anushka_intern';
+
+    if (id) {
+      formData.set('updated_user', actorUser);
+    } else {
+      formData.set('created_user', actorUser);
+    }
+
     try {
       if (id) {
         await updateProductRate(id, formData);
@@ -82,7 +116,7 @@ export default function App() {
       }
       setIsModalOpen(false);
       setEditItem(null);
-      await fetchRates(activeSearch); // Auto refresh
+      await fetchRates(activeSearch);
     } catch (err) {
       const errorMsg =
         err.response?.data?.rate?.[0] ||
@@ -103,7 +137,7 @@ export default function App() {
       showToast('Record deleted successfully.', 'success');
       setIsDeleteModalOpen(false);
       setItemToDelete(null);
-      await fetchRates(activeSearch); // Auto refresh
+      await fetchRates(activeSearch);
     } catch (err) {
       showToast('Failed to delete record.', 'error');
     } finally {
@@ -111,13 +145,11 @@ export default function App() {
     }
   };
 
-  // Comprehensive client-side filtering (Status + Search across all relevant fields)
+  // Filter rates by status & active search query
   const filteredRates = rates.filter((item) => {
-    // 1. Status Filter
     if (filterStatus !== 'All' && item.status !== filterStatus) {
       return false;
     }
-    // 2. Active Search Query Filter
     if (!activeSearch.trim()) return true;
     const q = activeSearch.toLowerCase().trim();
     return (
@@ -141,38 +173,80 @@ export default function App() {
       />
 
       {/* Corporate Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2.5 rounded-lg text-white">
+            <div className="bg-blue-600 p-2.5 rounded-lg text-white shadow-xs">
               <Layers size={22} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 tracking-tight">
-                SLTMobitel MI Product Rates
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-gray-900 tracking-tight">
+                  SLTMobitel MI Product Rates
+                </h1>
+                <span className="hidden sm:inline-block text-2xs bg-blue-100 text-blue-700 font-semibold px-2 py-0.5 rounded-full">
+                  Oracle DB
+                </span>
+              </div>
               <p className="text-xs text-gray-500">
-                Enterprise Rate Management System (Oracle DB Edition)
+                Enterprise Product Rate Management System
               </p>
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              setEditItem(null);
-              setIsModalOpen(true);
-            }}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-sm transition"
-          >
-            <Plus size={18} />
-            Add New Rate
-          </button>
+          <div className="flex items-center gap-3">
+            {/* User Profile / Auth Toggle */}
+            {currentUser ? (
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
+                    {currentUser.full_name ? currentUser.full_name[0] : currentUser.username[0]}
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <p className="text-xs font-semibold text-gray-800 leading-tight">
+                      {currentUser.full_name || currentUser.username}
+                    </p>
+                    <p className="text-2xs text-gray-500 font-medium">
+                      {currentUser.role || 'Executive'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  title="Sign Out"
+                  className="text-gray-400 hover:text-rose-600 p-1.5 rounded-md hover:bg-gray-100 transition cursor-pointer"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-blue-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition cursor-pointer"
+              >
+                <LogIn size={15} />
+                Sign In / Register
+              </button>
+            )}
+
+            {/* Add Rate Action Button */}
+            <button
+              onClick={() => {
+                setEditItem(null);
+                setIsModalOpen(true);
+              }}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2.5 rounded-lg shadow-sm transition cursor-pointer active:scale-95"
+            >
+              <Plus size={18} />
+              Add New Rate
+            </button>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        {/* Controls: Search Bar with Dedicated Search Button, Status Filter, Refresh */}
+        {/* Controls: Search, Filter, Refresh */}
         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
           <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
             {/* Search Input with Search & Clear Buttons */}
@@ -191,14 +265,14 @@ export default function App() {
                     type="button"
                     onClick={handleClearSearch}
                     className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 cursor-pointer"
-                    title="Clear search input"
+                    title="Clear search"
                   >
                     <X size={16} />
                   </button>
                 )}
               </div>
 
-              {/* Explicit Search Button */}
+              {/* Dedicated Search Button */}
               <button
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5 whitespace-nowrap cursor-pointer active:scale-95"
@@ -244,7 +318,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Active Search / Filter Status Banner */}
+          {/* Active Filter Summary Bar */}
           {(activeSearch || filterStatus !== 'All') && (
             <div className="flex items-center justify-between bg-blue-50/60 border border-blue-100 px-3.5 py-1.5 rounded-lg text-xs text-blue-800">
               <div className="flex items-center gap-2">
@@ -295,6 +369,7 @@ export default function App() {
         onSave={handleSave}
         editData={editItem}
         isSubmitting={isSubmitting}
+        defaultUser={currentUser?.username || 'anushka_intern'}
       />
 
       {/* Delete Confirmation Modal */}
@@ -304,6 +379,14 @@ export default function App() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setIsDeleteModalOpen(false)}
         isDeleting={isDeleting}
+      />
+
+      {/* Login & Register Modal (with optional Google Sign-In) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={handleAuthSuccess}
+        showToast={showToast}
       />
     </div>
   );
