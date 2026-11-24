@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, RefreshCw, Layers, X, Filter, LogIn, LogOut, UserCircle } from 'lucide-react';
+import { Plus, Search, RefreshCw, Layers, X, Filter, LogOut } from 'lucide-react';
 import ProductRateTable from './components/ProductRateTable';
 import ProductRateModal from './components/ProductRateModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
-import AuthModal from './components/AuthModal';
+import LoginPage from './components/LoginPage';
 import Toast from './components/Toast';
 import {
   getProductRates,
@@ -17,7 +17,7 @@ export default function App() {
   const [rates, setRates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Authentication state
+  // Authentication state — enforces login before dashboard access
   const [currentUser, setCurrentUser] = useState(() => {
     try {
       const saved = localStorage.getItem('slt_user');
@@ -26,7 +26,6 @@ export default function App() {
       return null;
     }
   });
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Search state
   const [searchInput, setSearchInput] = useState('');
@@ -52,20 +51,21 @@ export default function App() {
   const handleAuthSuccess = (userData) => {
     setCurrentUser(userData);
     localStorage.setItem('slt_user', JSON.stringify(userData));
+    fetchRates('');
   };
 
   const handleLogout = async () => {
     try {
       await logoutApi();
     } catch {
-      // Continue client cleanup regardless
+      // Continue client-side session cleanup
     }
     setCurrentUser(null);
     localStorage.removeItem('slt_user');
-    showToast('Signed out successfully.', 'success');
+    showToast('Signed out of system.', 'success');
   };
 
-  // Fetch rates
+  // Fetch rates from Oracle DB
   const fetchRates = async (query = activeSearch) => {
     setIsLoading(true);
     try {
@@ -78,9 +78,12 @@ export default function App() {
     }
   };
 
+  // Fetch on mount if authenticated
   useEffect(() => {
-    fetchRates('');
-  }, []);
+    if (currentUser) {
+      fetchRates('');
+    }
+  }, [currentUser]);
 
   const handleSearchSubmit = (e) => {
     if (e) e.preventDefault();
@@ -163,6 +166,25 @@ export default function App() {
     );
   });
 
+  // -------------------------------------------------------------
+  // GUARD: If not logged in, render the dedicated Login & Register Page
+  // -------------------------------------------------------------
+  if (!currentUser) {
+    return (
+      <>
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast({ message: '', type: 'success' })}
+        />
+        <LoginPage onAuthSuccess={handleAuthSuccess} showToast={showToast} />
+      </>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // MAIN DASHBOARD: Accessible only after successful authentication
+  // -------------------------------------------------------------
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Toast Notification */}
@@ -195,39 +217,29 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* User Profile / Auth Toggle */}
-            {currentUser ? (
-              <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
-                    {currentUser.full_name ? currentUser.full_name[0] : currentUser.username[0]}
-                  </div>
-                  <div className="hidden md:block text-left">
-                    <p className="text-xs font-semibold text-gray-800 leading-tight">
-                      {currentUser.full_name || currentUser.username}
-                    </p>
-                    <p className="text-2xs text-gray-500 font-medium">
-                      {currentUser.role || 'Executive'}
-                    </p>
-                  </div>
+            {/* Authenticated User Badge & Logout */}
+            <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs uppercase shadow-xs">
+                  {currentUser.full_name ? currentUser.full_name[0] : currentUser.username[0]}
                 </div>
-                <button
-                  onClick={handleLogout}
-                  title="Sign Out"
-                  className="text-gray-400 hover:text-rose-600 p-1.5 rounded-md hover:bg-gray-100 transition cursor-pointer"
-                >
-                  <LogOut size={16} />
-                </button>
+                <div className="hidden md:block text-left">
+                  <p className="text-xs font-semibold text-gray-800 leading-tight">
+                    {currentUser.full_name || currentUser.username}
+                  </p>
+                  <p className="text-2xs text-gray-500 font-medium">
+                    {currentUser.role || 'Rate Executive'}
+                  </p>
+                </div>
               </div>
-            ) : (
               <button
-                onClick={() => setIsAuthModalOpen(true)}
-                className="flex items-center gap-1.5 text-xs font-semibold text-gray-700 hover:text-blue-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition cursor-pointer"
+                onClick={handleLogout}
+                title="Sign Out of Portal"
+                className="text-gray-400 hover:text-rose-600 p-1.5 rounded-md hover:bg-gray-100 transition cursor-pointer"
               >
-                <LogIn size={15} />
-                Sign In / Register
+                <LogOut size={16} />
               </button>
-            )}
+            </div>
 
             {/* Add Rate Action Button */}
             <button
@@ -244,9 +256,9 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content */}
+      {/* Main Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
-        {/* Controls: Search, Filter, Refresh */}
+        {/* Controls: Search Bar, Status Filter, Refresh */}
         <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-3">
           <div className="flex flex-col md:flex-row gap-3 justify-between items-center">
             {/* Search Input with Search & Clear Buttons */}
@@ -379,14 +391,6 @@ export default function App() {
         onConfirm={handleDeleteConfirm}
         onCancel={() => setIsDeleteModalOpen(false)}
         isDeleting={isDeleting}
-      />
-
-      {/* Login & Register Modal (with optional Google Sign-In) */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        onAuthSuccess={handleAuthSuccess}
-        showToast={showToast}
       />
     </div>
   );

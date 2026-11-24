@@ -130,6 +130,20 @@ MI Product Rates/
 
 ---
 
+## 🔐 Sample User Credentials (In Oracle Database)
+
+Access to the dashboard is protected. The following user accounts are provisioned in the Oracle Database:
+
+| Role | Username | Work Email | Password |
+| :--- | :--- | :--- | :--- |
+| **Enterprise Administrator** | `slt_admin` | `admin.enterprise@sltmobitel.lk` | `Admin@123` |
+| **Rate Executive** | `anushka_intern` | `anushka.intern@sltmobitel.lk` | `Intern@123` |
+| **Commercial Manager** | `commercial_manager` | `manager.commercial@sltmobitel.lk` | `Manager@123` |
+
+*(Note: The login page includes one-click sample credential buttons and optional **Google Sign-In**).*
+
+---
+
 ## ⚡ Quick Start
 
 ### 1. Database & Backend Setup
