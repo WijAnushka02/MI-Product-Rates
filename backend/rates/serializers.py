@@ -15,6 +15,8 @@ class MiProductRateSerializer(serializers.ModelSerializer):
     attachment_url = serializers.SerializerMethodField(read_only=True)
     download_url = serializers.SerializerMethodField(read_only=True)
     rate = serializers.DecimalField(max_digits=12, decimal_places=2, coerce_to_string=False)
+    created_user = serializers.CharField(required=False, allow_blank=True, default='')
+    updated_user = serializers.CharField(required=False, allow_blank=True, default='')
 
     class Meta:
         model = MiProductRate

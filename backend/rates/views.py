@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .models import MiProductRate
 from .serializers import MiProductRateSerializer
+from .authentication import CsrfExemptSessionAuthentication
 
 
 class MiProductRateViewSet(viewsets.ModelViewSet):
@@ -20,6 +21,7 @@ class MiProductRateViewSet(viewsets.ModelViewSet):
     """
     queryset = MiProductRate.objects.all().order_by('-id')
     serializer_class = MiProductRateSerializer
+    authentication_classes = [CsrfExemptSessionAuthentication]
     parser_classes = (MultiPartParser, FormParser, JSONParser)
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['sr_id', 'service', 'executive_level', 'created_user', 'status', 'comments']

@@ -122,9 +122,12 @@ export default function App() {
       await fetchRates(activeSearch);
     } catch (err) {
       const errorMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
         err.response?.data?.rate?.[0] ||
         err.response?.data?.service?.[0] ||
         err.response?.data?.executive_level?.[0] ||
+        err.message ||
         'Error saving rate record.';
       showToast(errorMsg, 'error');
     } finally {
@@ -142,7 +145,12 @@ export default function App() {
       setItemToDelete(null);
       await fetchRates(activeSearch);
     } catch (err) {
-      showToast('Failed to delete record.', 'error');
+      const errorMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.error ||
+        err.message ||
+        'Failed to delete record.';
+      showToast(errorMsg, 'error');
     } finally {
       setIsDeleting(false);
     }
