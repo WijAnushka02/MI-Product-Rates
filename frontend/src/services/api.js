@@ -1,7 +1,11 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://localhost:8000/api/mi-product-rates/';
-const AUTH_URL = 'http://localhost:8000/api/auth/';
+// When running with Vite (or a proxy), relative paths avoid any CORS or host/port conflicts
+const isDev = import.meta.env.DEV;
+const API_BASE = isDev ? '' : (import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000');
+
+const BASE_URL = `${API_BASE}/api/mi-product-rates/`;
+const AUTH_URL = `${API_BASE}/api/auth/`;
 
 const apiClient = axios.create({
   baseURL: BASE_URL,

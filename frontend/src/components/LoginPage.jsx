@@ -28,9 +28,15 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
       showToast(`Welcome back, ${res.user.full_name}!`, 'success');
       onAuthSuccess(res.user);
     } catch (err) {
-      setErrorMsg(
-        err.response?.data?.error || 'Invalid credentials. Please verify your username and password.'
-      );
+      if (err.response?.data?.error) {
+        setErrorMsg(err.response.data.error);
+      } else if (err.response?.data?.detail) {
+        setErrorMsg(err.response.data.detail);
+      } else if (err.message && err.message.toLowerCase().includes('network')) {
+        setErrorMsg('Network Error: Unable to reach backend. Ensure Django is running on port 8000.');
+      } else {
+        setErrorMsg(err.message || 'Invalid credentials. Please verify your username and password.');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,7 +66,15 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
       showToast(`Account created successfully! Welcome, ${res.user.full_name}.`, 'success');
       onAuthSuccess(res.user);
     } catch (err) {
-      setErrorMsg(err.response?.data?.error || 'Registration failed.');
+      if (err.response?.data?.error) {
+        setErrorMsg(err.response.data.error);
+      } else if (err.response?.data?.detail) {
+        setErrorMsg(err.response.data.detail);
+      } else if (err.message && err.message.toLowerCase().includes('network')) {
+        setErrorMsg('Network Error: Unable to reach backend. Ensure Django is running on port 8000.');
+      } else {
+        setErrorMsg(err.message || 'Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
