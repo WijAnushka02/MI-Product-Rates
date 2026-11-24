@@ -6,11 +6,56 @@ An enterprise full-stack system designed for **SLTMobitel** to manage, track, an
 
 ---
 
+## 🏛️ High-Level System Architecture
+
+The application adopts a decoupled client-server architecture:
+
+```mermaid
+graph TD
+    subgraph Client["Frontend Client (React.js + Vite)"]
+        UI["React SPA Dashboard (Tailwind CSS)"]
+        State["React Hooks (useState, useEffect)"]
+        AxiosClient["Axios HTTP Client (api.js)"]
+    end
+
+    subgraph Server["Backend Server (Django REST Framework)"]
+        Urls["Django URL Router (/api/mi-product-rates/)"]
+        ViewSet["ModelViewSet (CRUD Logic)"]
+        Serializer["ModelSerializer (Validation & Serialization)"]
+        ORM["Django ORM (MiProductRate Model)"]
+        MediaStorage["File Storage (media/attachments/)"]
+    end
+
+    subgraph DB["Enterprise Database (Oracle DB 23ai)"]
+        OracleDB[("Oracle Database (localhost:1521)")]
+        PDB[("Pluggable Database: FREEPDB1")]
+        Table[("Table: SIA_MI_PRODUCT_RATES")]
+    end
+
+    UI --> State
+    State --> AxiosClient
+    AxiosClient -->|"HTTP Requests (multipart/form-data & JSON)"| Urls
+    Urls --> ViewSet
+    ViewSet --> Serializer
+    ViewSet --> MediaStorage
+    Serializer --> ORM
+    ORM -->|"python-oracledb (Thin Mode)"| OracleDB
+    OracleDB --> PDB
+    PDB --> Table
+    Table -->|"Query Results"| ORM
+    ORM --> ViewSet
+    ViewSet -->|"JSON Response with File URLs"| AxiosClient
+    AxiosClient --> State
+    State --> UI
+```
+
+---
+
 ## 🛠️ Technology Stack
 
-- **Database:** Oracle Database (via `python-oracledb`)
-- **Backend:** Python 3.10+, Django 5.x, Django REST Framework (DRF)
-- **Frontend:** React.js (Vite), Axios, Tailwind CSS
+- **Database:** Oracle Database 23ai Free (via `python-oracledb` Thin mode)
+- **Backend:** Python 3.10+, Django 6.x, Django REST Framework (DRF)
+- **Frontend:** React.js (Vite), Axios, Tailwind CSS, Lucide Icons
 - **API Testing:** Postman (Collection v2.1.0 included)
 
 ---
@@ -19,6 +64,25 @@ An enterprise full-stack system designed for **SLTMobitel** to manage, track, an
 
 ```text
 MI Product Rates/
+├── backend/                               # Django REST API Backend
+│   ├── manage.py                          # Django management CLI
+│   ├── requirements.txt                   # Backend dependencies
+│   ├── mi_rates_backend/                  # Core settings & routing
+│   │   ├── settings.py                    # Oracle DB, DRF & CORS config
+│   │   ├── __init__.py                    # python-oracledb driver setup
+│   │   └── urls.py                        # Root URLs & media serving
+│   └── rates/                             # MI Rates application
+│       ├── models.py                      # SIA_MI_PRODUCT_RATES model & auto SR_ID
+│       ├── serializers.py                 # DRF validation & file URL formatting
+│       ├── views.py                       # CRUD ModelViewSet
+│       └── urls.py                        # App endpoints
+├── frontend/                              # React.js SPA (Vite)
+│   ├── src/
+│   │   ├── App.jsx                        # State orchestration & layout
+│   │   ├── services/api.js                # Axios API service
+│   │   └── components/                    # Table, Modals & Toast alerts
+│   ├── package.json
+│   └── vite.config.js
 ├── docs/                                  # Comprehensive Step-by-Step Guides
 │   ├── README.md                          # Documentation Table of Contents
 │   ├── 01_PROJECT_OVERVIEW_AND_ARCHITECTURE.md
@@ -30,7 +94,7 @@ MI Product Rates/
 │   └── 07_EXECUTION_AND_TROUBLESHOOTING_GUIDE.md # Run guide & common Oracle/Django fixes
 ├── postman/                               # Ready-to-import Postman Collection
 │   └── MI_Product_Rates_API.postman_collection.json
-├── README.md                              # This summary file
+├── README.md                              # Main overview & quick start
 └── .gitignore
 ```
 
@@ -50,7 +114,7 @@ MI Product Rates/
    - `GET /api/mi-product-rates/` — List all records with search and ordering
    - `GET /api/mi-product-rates/<id>/` — Retrieve single record
    - `PUT/PATCH /api/mi-product-rates/<id>/` — Update record
-   - `DELETE /api/mi-product-rates/<id>/` — Delete record
+   - `DELETE /api/mi-product-rates/<id>/` — Delete record (with attachment file cleanup)
 
 3. **React.js Frontend:**
    - Clean, responsive dashboard tailored for SLTMobitel enterprise use.
