@@ -8,6 +8,15 @@ from django.contrib.auth.models import User
 
 users_data = [
     {
+        'username': 'admin',
+        'email': 'admin@sltmobitel.lk',
+        'password': 'Admin@123',
+        'first_name': 'SLT',
+        'last_name': 'Admin',
+        'is_staff': True,
+        'is_superuser': True,
+    },
+    {
         'username': 'slt_admin',
         'email': 'admin.enterprise@sltmobitel.lk',
         'password': 'Admin@123',
@@ -15,6 +24,15 @@ users_data = [
         'last_name': 'Enterprise Admin',
         'is_staff': True,
         'is_superuser': True,
+    },
+    {
+        'username': 'anushka',
+        'email': 'anushka@sltmobitel.lk',
+        'password': 'Intern@123',
+        'first_name': 'Anushka',
+        'last_name': 'Dilshan',
+        'is_staff': False,
+        'is_superuser': False,
     },
     {
         'username': 'anushka_intern',

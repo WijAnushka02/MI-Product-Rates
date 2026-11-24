@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Layers, Lock, Mail, User, ShieldCheck, ArrowRight, CheckCircle, Sparkles, KeyRound } from 'lucide-react';
+import { Layers, Lock, Mail, User, ShieldCheck, ArrowRight, CheckCircle } from 'lucide-react';
 import { loginApi, registerApi, googleAuthApi } from '../services/api';
 
 export default function LoginPage({ onAuthSuccess, showToast }) {
@@ -95,14 +95,6 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
     } finally {
       setLoading(false);
     }
-  };
-
-  // One-click populate sample credentials
-  const fillSampleCredentials = (user, pass) => {
-    setTab('login');
-    setUsername(user);
-    setPassword(pass);
-    setErrorMsg('');
   };
 
   return (
@@ -215,7 +207,7 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g., slt_admin or anushka_intern"
+                      placeholder="Username or work email"
                       required
                       className="pl-9 pr-3 py-2.5 text-sm w-full border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                     />
@@ -279,7 +271,7 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      placeholder="e.g., anushka_intern"
+                      placeholder="Enter a username"
                       required
                       className="pl-9 pr-3 py-2 text-sm w-full border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
                     />
@@ -370,45 +362,8 @@ export default function LoginPage({ onAuthSuccess, showToast }) {
             </button>
           </div>
 
-          {/* Sample Credentials Card for Evaluators / User Testing */}
-          <div className="mt-5 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-gray-800">
-              <KeyRound size={14} className="text-blue-600" />
-              <span>Sample Credentials in Oracle DB:</span>
-            </div>
-            <p className="text-2xs text-gray-500 mt-0.5">Click any credential below to auto-fill:</p>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => fillSampleCredentials('slt_admin', 'Admin@123')}
-                className="text-left p-2 rounded-lg bg-white border border-gray-200 hover:border-blue-500 hover:shadow-xs transition cursor-pointer"
-              >
-                <div className="text-2xs font-bold text-blue-700">Administrator</div>
-                <div className="text-2xs text-gray-600 font-mono">slt_admin</div>
-                <div className="text-3xs text-gray-400 font-mono">Admin@123</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillSampleCredentials('anushka_intern', 'Intern@123')}
-                className="text-left p-2 rounded-lg bg-white border border-gray-200 hover:border-blue-500 hover:shadow-xs transition cursor-pointer"
-              >
-                <div className="text-2xs font-bold text-blue-700">Rate Executive</div>
-                <div className="text-2xs text-gray-600 font-mono">anushka_intern</div>
-                <div className="text-3xs text-gray-400 font-mono">Intern@123</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => fillSampleCredentials('commercial_manager', 'Manager@123')}
-                className="text-left p-2 rounded-lg bg-white border border-gray-200 hover:border-blue-500 hover:shadow-xs transition cursor-pointer"
-              >
-                <div className="text-2xs font-bold text-blue-700">Manager</div>
-                <div className="text-2xs text-gray-600 font-mono">commercial_manager</div>
-                <div className="text-3xs text-gray-400 font-mono">Manager@123</div>
-              </button>
-            </div>
+          <div className="mt-8 text-center text-xs text-gray-400">
+            Secure authentication backed by Oracle Database 23ai & SLTMobitel Enterprise IAM.
           </div>
         </div>
 

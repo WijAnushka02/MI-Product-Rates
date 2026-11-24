@@ -62,22 +62,41 @@ def register_user(request):
 def login_user(request):
     """
     Logs in an existing user with username/email and password.
+    Supports case-insensitive username or email matching and strips accidental whitespace.
     Payload: { "username": "...", "password": "..." }
     """
-    username_or_email = request.data.get('username', '').strip()
-    password = request.data.get('password', '')
+    raw_identifier = request.data.get('username', '')
+    username_or_email = raw_identifier.strip() if isinstance(raw_identifier, str) else ''
+    
+    raw_password = request.data.get('password', '')
+    password = raw_password.strip() if isinstance(raw_password, str) else ''
 
     if not username_or_email or not password:
         return Response({'error': 'Username/Email and password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Allow login with either username or email
-    user = authenticate(request, username=username_or_email, password=password)
-    if user is None and '@' in username_or_email:
-        try:
-            matched_user = User.objects.get(email__iexact=username_or_email)
-            user = authenticate(request, username=matched_user.username, password=password)
-        except (User.DoesNotExist, User.MultipleObjectsReturned):
-            user = None
+    user = None
+
+    # 1. Match candidates by username (case-insensitive)
+    candidates = list(User.objects.filter(username__iexact=username_or_email))
+
+    # 2. Match candidates by email (case-insensitive)
+    if not candidates or '@' in username_or_email:
+        email_candidates = list(User.objects.filter(email__iexact=username_or_email))
+        for ec in email_candidates:
+            if ec not in candidates:
+                candidates.append(ec)
+
+    # 3. Check password across matched candidate accounts
+    for candidate in candidates:
+        if candidate.check_password(password) or candidate.check_password(raw_password):
+            user = candidate
+            break
+
+    # 4. Fallback to standard Django authenticate
+    if user is None:
+        user = authenticate(request, username=username_or_email, password=raw_password)
+    if user is None and raw_password != password:
+        user = authenticate(request, username=username_or_email, password=password)
 
     if user is None:
         return Response({'error': 'Invalid credentials. Please verify your username and password.'}, status=status.HTTP_401_UNAUTHORIZED)
